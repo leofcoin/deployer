@@ -1,6 +1,5 @@
 import {rollup} from 'rollup'
 import {terser} from 'rollup-plugin-terser'
-import virtual from '@rollup/plugin-virtual';
 import nodeResolve from '@rollup/plugin-node-resolve'
 
 const generateOutputs = async (bundle) => {
