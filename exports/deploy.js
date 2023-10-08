@@ -1,33 +1,30 @@
 import { unlink, writeFile } from 'node:fs/promises';
-import { build } from './build.js';
+import bundle from './bundle.js';
 import launch from '@leofcoin/launch-chain'
 import WsClient from '@leofcoin/endpoint-clients/ws'
 import HttpClient from '@leofcoin/endpoint-clients/http'
 
 globalThis.DEBUG = true
 
-const kebabCase = string => string
-.replace(/([a-z])([A-Z])/g, "$1-$2")
-.replace(/[\s_]+/g, '-')
-.toLowerCase();
-
-const deploy = async (code, params = [], network = 'leofcoin:peache', destination = './build/contracts') => {
+const deploy = async (code, params = [], network = 'leofcoin:peach', destination = './build/contracts') => {
   let client
-  const {chain, endpoints, mode} = await launch({network, ws: { port: 4040 }, http: { port: 8080 }})
+  const {chain, endpoints, mode} = await launch({network, ws: [{ url: 'wss://ws-remote.leofcoin.org' }], http: [{ url: 'https://remote.leofcoin.org' }]})
   console.log(chain, endpoints);
   const networkVersion = network.replace(':', '-')
   if (mode === 'direct') client = chain
   else {
     if (endpoints.length === 0 ) throw new Error('no endpoints found')
     let success = false
-    for (const [] of Object.entries(endpoints)) {
+    for (const [key, url] of Object.entries(endpoints)) {
       if (!success) {
+        console.log(key);
         try {
           if (key === 'ws') client = await (await new WsClient(url, networkVersion)).init()
-          if (key === 'http') client = await (await new HttpClient(url)).init()
+          if (key === 'http') client = await new HttpClient(url)
           success = true
-        } catch {
-          throw new Error('deployment failed')
+        } catch (error) {
+          console.log(error);
+          new Error('deployment failed')
         }
       }
     }
@@ -37,19 +34,28 @@ const deploy = async (code, params = [], network = 'leofcoin:peache', destinatio
     throw new Error('No name detected')
   }
   const name = match[0].replace('export default class ', '').replace('export{', '').replace('as default}', '')
-  const filename = kebabCase(name)
-  const path = `./.tmp.${filename}.js`
-  await writeFile(path, code)
-  const selectedAccount = peernet.selectedAccount || await client.selectedAccount()
-  await client.participate(selectedAccount)
-  // code = await build(`./templates/wizard/${filename}.js`)
-  code = await build(path)
+  const selectedAccount = globalThis.peernet?.selectedAccount || await client.selectedAccount()
+  console.log({selectedAccount});
+  try {
+    
+  // await client.participate(selectedAccount)
+  } catch (error) {
+    console.log(error);
+  }
+  console.log('p');
+  // code = await bundle(`./templates/wizard/${filename}.js`)
+  code = await bundle(code)
   code = code.toString().replace(/export{([A-Z])\w+ as default}/g, `return ${name}`).replace(/\r?\n|\r/g, '')
+
+  console.log({code});
+  console.log(client);
   let tx = await client.deployContract(code, params)
   
-  await unlink(path)
+ console.log(tx);
   const address = await client.createContractAddress(selectedAccount, code, params)
-  if (tx.wait) await tx.wait()  
+  
+  if (tx.wait) await tx.wait 
+  await unlink(path)
   return {code, name, address}
 }
 

@@ -8,7 +8,7 @@
   },
   "type": "module",
   "scripts": {
-    "test": "node --openssl-legacy-provider test/test.js"
+    "test": "node test/index.js"
   },
   "repository": {
     "type": "git",
@@ -22,11 +22,17 @@
   },
   "homepage": "https://github.com/leofcoin/deployer#readme",
   "dependencies": {
-    "@leofcoin/endpoint-clients": "^0.2.1",
+    "@leofcoin/endpoint-clients": "^0.2.2",
+    "@leofcoin/endpoints": "^0.2.5",
     "@leofcoin/launch-chain": "^0.2.0",
+    "@rollup/plugin-json": "^6.0.0",
     "@rollup/plugin-node-resolve": "^15.0.1",
+    "@rollup/plugin-typescript": "^11.0.0",
+    "@rollup/plugin-virtual": "^3.0.1",
     "rollup": "^3.8.1",
-    "rollup-plugin-terser": "^7.0.2",
     "terser": "5.14"
+  },
+  "devDependencies": {
+    "@rollup/plugin-terser": "^0.4.0"
   }
 }
