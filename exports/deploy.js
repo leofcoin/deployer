@@ -45,7 +45,6 @@ const deploy = async (code, params = [], network = 'leofcoin:peach', destination
   console.log('p');
   // code = await bundle(`./templates/wizard/${filename}.js`)
   code = await bundle(code)
-  code = code.toString().replace(/export{([A-Z])\w+ as default}/g, `return ${name}`).replace(/\r?\n|\r/g, '')
 
   console.log({code});
   console.log(client);
